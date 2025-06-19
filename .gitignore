@@ -1,0 +1,46 @@
+# Byte-compiled / caching
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter checkpoints
+**/.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+settings.json
+
+# Ignore processed data and outputs
+data/processed/
+outputs/
+
+# Keep raw data tracked (remove these lines if you later want to ignore your raw CSV)
+!data/raw/
+!data/raw/*.csv
+
+# Environment files
+.env
+
+# Jupyter checkpoint files
+**/.ipynb_checkpoints/
+
+# VSCode settings
+.vscode/
+settings.json
+
+# Any stray “-checkpoint” files
+*-checkpoint.md
+*-checkpoint.txt
+# Jupyter checkpoints
+**/.ipynb_checkpoints/
+
+# VSCode settings
+.vscode/
+settings.json
+
+# Checkpoint files
+*-checkpoint.md
+*-checkpoint.txt
+
+# Nested repo folder
+/bundesliga-player-valuation/
