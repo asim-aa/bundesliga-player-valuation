@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Bundesliga Player Valuation
 
 Welcome to the Bundesliga Player Valuation project! This is where my two greatest passions collide: the beautiful game of soccer and the elegant world of mathematics.
@@ -17,3 +18,5 @@ Combining my analytical background in mathematics with my love for soccer felt l
 ---
 
 This README serves as the heart of the project’s vision. As I continue to develop and refine my analysis, I’ll share stories of discovery, insights into player performance, and the joy of blending sports and science into one cohesive journey.
+=======
+>>>>>>> 0dd7bde (Update .gitignore and add load_data.py)
