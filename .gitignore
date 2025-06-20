@@ -10,9 +10,6 @@ __pycache__/
 .vscode/
 settings.json
 
-# Ignore processed data and outputs
-data/processed/
-outputs/
 
 # Keep raw data tracked (remove these lines if you later want to ignore your raw CSV)
 !data/raw/
