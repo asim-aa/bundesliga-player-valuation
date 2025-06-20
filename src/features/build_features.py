@@ -35,7 +35,7 @@ def main():
     # 4. Height category
     df['height_cat'] = pd.cut(
         df['height'],
-        bins=[0, 175, 185, 300],
+        bins=[0, 170, 185, 200],
         labels=['Short', 'Average', 'Tall']
     )
 
