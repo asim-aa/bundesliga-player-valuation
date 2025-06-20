@@ -31,9 +31,7 @@ settings.json
 # Jupyter checkpoints
 **/.ipynb_checkpoints/
 
-# VSCode settings
-.vscode/
-settings.json
+
 
 # Checkpoint files
 *-checkpoint.md
