@@ -1,0 +1,47 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# 1. Load cleaned data
+df = pd.read_csv('data/processed/players_clean.csv')
+
+# 2. Univariate plots
+
+# 2a) Histogram of age
+plt.figure()
+plt.hist(df['age'], bins=15)
+plt.title('Distribution of Player Ages')
+plt.xlabel('Age')
+plt.ylabel('Count')
+plt.show()
+
+# 2b) Boxplot of price by position
+plt.figure()
+df.boxplot(column='price', by='position', rot=45)
+plt.title('Market Value by Position')
+plt.suptitle('')  # remove the automatic “Boxplot grouped by position” subtitle
+plt.xlabel('Position')
+plt.ylabel('Price (€)')
+plt.show()
+
+# 3. Bivariate plots
+
+# 3a) Scatter: age vs. price
+plt.figure()
+plt.scatter(df['age'], df['price'])
+plt.title('Age vs. Market Value')
+plt.xlabel('Age')
+plt.ylabel('Price (€)')
+plt.show()
+
+# 3b) Correlation heatmap of numeric features
+numeric_cols = df.select_dtypes(include='number').columns
+corr = df[numeric_cols].corr()
+
+plt.figure()
+plt.imshow(corr, interpolation='nearest', aspect='auto')
+plt.colorbar(label='Correlation coefficient')
+plt.xticks(range(len(numeric_cols)), numeric_cols, rotation=90)
+plt.yticks(range(len(numeric_cols)), numeric_cols)
+plt.title('Correlation Matrix')
+plt.tight_layout()
+plt.show()
