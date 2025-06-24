@@ -1,38 +1,45 @@
-#!/usr/bin/env python3
-from sklearn.pipeline import Pipeline
+# src/pipeline.py
+
+import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+import numpy as np
+import joblib
 
-def build_pipeline(X):
-    numeric_cols   = X.select_dtypes(include=["int64","float64"]).columns
-    categorical_cols = X.select_dtypes(include=["object","category"]).columns
+def main():
+    # 1. Load data
+    X_train = pd.read_csv("data/processed/X_train.csv")
+    X_test  = pd.read_csv("data/processed/X_test.csv")
+    y_train = pd.read_csv("data/processed/y_train.csv").squeeze()
+    y_test  = pd.read_csv("data/processed/y_test.csv").squeeze()
 
-    num_pipe = Pipeline([
-        ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", StandardScaler())
-    ])
-    cat_pipe = Pipeline([
-        ("imputer", SimpleImputer(strategy="constant", fill_value="MISSING")),
-        ("onehot", OneHotEncoder(handle_unknown="ignore"))
-    ])
-
+    # 2. Preprocessor
+    num_cols = X_train.select_dtypes(include=["int64","float64"]).columns
+    cat_cols = X_train.select_dtypes(include=["object","category"]).columns
     preprocessor = ColumnTransformer([
-        ("num", num_pipe, numeric_cols),
-        ("cat", cat_pipe, categorical_cols)
+        ("num", StandardScaler(), num_cols),
+        ("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols),
     ])
 
-    model_pipe = Pipeline([
+    # 3. Pipeline
+    pipeline = Pipeline([
         ("preproc", preprocessor),
-        ("rf", RandomForestRegressor(n_estimators=100, random_state=42))
+        ("model", RandomForestRegressor(n_estimators=100, random_state=42))
     ])
-    return model_pipe
+
+    # 4. Fit and evaluate
+    pipeline.fit(X_train, y_train)
+
+    # 5. Save the trained pipeline for future predictions
+    joblib.dump(pipeline, "models/best_pipeline.pkl")
+    print("✔ Saved pipeline to models/best_pipeline.pkl")
+
+    preds = pipeline.predict(X_test)
+    rmse = np.sqrt(mean_squared_error(y_test, preds))
+    print(f"Pipeline RMSE: {rmse:.2f}")
 
 if __name__ == "__main__":
-    # Example usage
-    from data_split import load_and_split
-    X_train, X_test, y_train, y_test = load_and_split("data/processed/players_clean.csv")
-    pipe = build_pipeline(X_train)
-    pipe.fit(X_train, y_train)
-    print("Pipeline training complete.")
+    main()
