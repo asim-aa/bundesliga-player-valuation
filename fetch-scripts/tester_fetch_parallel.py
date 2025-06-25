@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 tester_fetch_parallel.py
 
@@ -7,7 +6,6 @@ tester_fetch_parallel.py
 - Parses raw infobox date into DD-MM-YYYY
 - Writes a CSV 'birthdays_output.csv' next to this script
 """
-
 import os
 import sys
 import io
