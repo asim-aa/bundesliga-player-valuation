@@ -61,7 +61,6 @@ def main():
     for name in names:
         dob = fetch_dob(name)
         print(f"{name}: {dob}")
-        time.sleep(0.5)  # be polite
 
 if __name__ == "__main__":
     main()
