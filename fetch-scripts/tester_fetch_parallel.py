@@ -75,7 +75,7 @@ def _normalize_dob(raw: str) -> str:
     return raw
 
 
-def fetch_dob(name: str) -> (str, str):
+def fetch_dob(name: str) -> tuple[str, str]:
     """
     Fetches raw 'birth_date' or 'born' from the Wikipedia infobox,
     normalizes it to DD-MM-YYYY, and returns (name, dob).
