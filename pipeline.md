@@ -19,10 +19,10 @@ df = pd.read_csv(data_path)
   2. Builds a portable path to `players_clean.csv`.
   3. Loads the cleaned DataFrame `df`.
 
-* **Why**
+* **Why:**
   Ensures the script can run from any working directory and always uses the same pre-cleaned data.
 
----
+--- 
 
 ## 2. Train/Test Split on Raw Prices
 
@@ -34,10 +34,10 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 ```
 
-* **What it does**
+* **What it does:**
   Splits 80% for training, 20% for testing, with a fixed random seed for reproducibility.
 
-* **Why**
+* **Why:**
   Prevents data leakage and simulates evaluating on truly unseen players.
 
 ---
@@ -59,7 +59,7 @@ preprocessor = ColumnTransformer([
   * **StandardScaler**: zero-mean, unit-variance scaling for numeric features.
   * **OneHotEncoder**: binary encoding of categories, dropping the first level to avoid collinearity, ignoring unseen categories in test.
 
-* **Why**
+* **Why:**
   Prepares features for models that assume normalized inputs or cannot natively handle strings.
 
 ---
@@ -75,10 +75,10 @@ baseline.fit(X_train, y_train)
 y_pred = baseline.predict(X_test)
 ```
 
-* **What it does**
+* **What it does:**
   Chains preprocessing + a plain `LinearRegression`, trains on the train set, predicts on test.
 
-* **Why**
+* **Why:**
   Serves as a simple benchmark: if your complex models can’t beat this, revisit your pipeline.
 
 ---
