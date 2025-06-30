@@ -1,292 +1,247 @@
-Here’s a structured breakdown you can use to document **every conceptual topic** in your `model_pipeline.py`, together with why and how each output is chosen and what it means. You can copy this into your project’s README or a separate design doc.
+````markdown
+# `model_pipeline.py` Documentation
+
+This document walks through each part of `src/model_pipeline.py`, explains what the code does, why we produce each output, and how to interpret the final results.
 
 ---
 
-## 📂 1. Data Loading & Preparation
-
-### Code
+## 1. Project Setup & Data Loading
 
 ```python
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 data_path = os.path.join(repo_root, 'data', 'processed', 'players_clean.csv')
 df = pd.read_csv(data_path)
-```
+````
 
-### What it does
+* **What it does**
 
-* **Finds your project root** dynamically, so the script works no matter where it’s executed from.
-* **Loads** the cleaned CSV into a DataFrame, which ensures all downstream steps have the sanitized, uniform data you produced earlier.
+  1. Locates the project root directory.
+  2. Builds a portable path to `players_clean.csv`.
+  3. Loads the cleaned DataFrame `df`.
 
-### Why we look for it
-
-* You need a reliable way to access the **same cleaned data** each run.
-* Documenting this shows how to reproduce the pipeline.
-
----
-
-## 🔧 2. Target Definition & Transformation
-
-### Code
-
-```python
-X     = df.drop('price', axis=1)
-y_log = np.log1p(df['price'])
-```
-
-### What it does
-
-* **Splits** features (`X`) from the target (`price`).
-* **Applies** a log(+1) transform to the target (`y_log`) to stabilize variance (common when targets are skewed).
-
-### Why we look for it
-
-* **Log-transformation** often reduces the impact of extreme values (“€100 M” vs. “€1 M”) and improves linear-model performance.
-* Documenting it explains why your models train on `y_log` instead of raw `price`.
+* **Why**
+  Ensures the script can run from any working directory and always uses the same pre-cleaned data.
 
 ---
 
-## 🔄 3. Preprocessing Definition & Fitting
-
-### Code
+## 2. Train/Test Split on Raw Prices
 
 ```python
-full_pre = ColumnTransformer([...])
-full_pre.fit(X)
-wrapped_pre = FunctionTransformer(full_pre.transform, validate=False)
-```
-
-### What it does
-
-1. **Defines** how to scale numeric columns (`StandardScaler`) and encode categoricals (`OneHotEncoder`).
-2. **Fits** this transformer on the **entire** dataset so it “knows” every category upfront.
-3. **Wraps** `transform` in a `FunctionTransformer` so that downstream pipelines reuse this single fitted transformer (preventing “unknown-category” warnings).
-
-### Why we look for it
-
-* Ensures consistency: the same scaling/encoding applied during training, testing, and explainability.
-* Prevents data leakage by not refitting separately on train vs. test.
-
----
-
-## 🔀 4. Train/Test Split
-
-### Code
-
-```python
-X_train, X_test, y_train_log, y_test_log = train_test_split(
-    X, y_log, test_size=0.2, random_state=42
+X = df.drop('price', axis=1)
+y = df['price']
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
 )
-y_test_orig = np.expm1(y_test_log)
 ```
 
-### What it does
+* **What it does**
+  Splits 80% for training, 20% for testing, with a fixed random seed for reproducibility.
 
-* **Partitions** your data into 80% **training** and 20% **testing**, with a fixed seed for reproducibility.
-* **Recovers** the original‐scale target (`y_test_orig`) by applying `expm1` so you can measure real‐€ errors later.
-
-### Why we look for it
-
-* **Simulates** real‐world deployment: the model trains on known data and is evaluated on unseen data.
-* Documenting this shows how you guard against over‐fitting and measure true generalization.
+* **Why**
+  Prevents data leakage and simulates evaluating on truly unseen players.
 
 ---
 
-## 🚀 5. Baseline Model on Log Target
-
-### Code
+## 3. Preprocessing: Scaling & Encoding
 
 ```python
-baseline = Pipeline([('pre', wrapped_pre), ('lr', LinearRegression())])
-baseline.fit(X_train, y_train_log)
-y_pred_log = baseline.predict(X_test)
+numeric_cols = ['age', 'height', 'max_price']
+cat_cols     = ['position','nationality','foot','club','player_agent','outfitter']
+
+preprocessor = ColumnTransformer([
+    ('num', StandardScaler(), numeric_cols),
+    ('cat', OneHotEncoder(drop='first', handle_unknown='ignore'), cat_cols),
+])
 ```
 
-### What it does
+* **What it does**
 
-* **Chains** preprocessing + a plain `LinearRegression` into one pipeline.
-* **Fits** on `y_log`, predicting log‐prices on the test fold.
+  * **StandardScaler**: zero-mean, unit-variance scaling for numeric features.
+  * **OneHotEncoder**: binary encoding of categories, dropping the first level to avoid collinearity, ignoring unseen categories in test.
 
-### Why we look for it
-
-* **Establishes** a simple benchmark: if your fancy models can’t beat this, something is wrong.
-* Documenting it explains why **pipelines** simplify “fit” and “predict” calls.
+* **Why**
+  Prepares features for models that assume normalized inputs or cannot natively handle strings.
 
 ---
 
-## 📊 6. Baseline Metrics (Log & Original Scales)
-
-### Code
+## 4. Baseline Linear Regression
 
 ```python
-mse_log = mean_squared_error(y_test_log, y_pred_log)
-print("RMSE (log):", np.sqrt(mse_log))
-print("R²  (log):", r2_score(y_test_log, y_pred_log))
-
-y_pred = np.expm1(y_pred_log)
-print("RMSE (€):", np.sqrt(mean_squared_error(y_test_orig, y_pred)))
-print("R²  (€):", r2_score(y_test_orig, y_pred))
+baseline = Pipeline([
+    ('pre', preprocessor),
+    ('lr',  LinearRegression()),
+])
+baseline.fit(X_train, y_train)
+y_pred = baseline.predict(X_test)
 ```
 
-### What it does
+* **What it does**
+  Chains preprocessing + a plain `LinearRegression`, trains on the train set, predicts on test.
 
-* **Reports** RMSE & R² on the **log scale**, showing how well you model `log(price)`.
-* **Back‐transforms** to the € scale and recomputes RMSE & R² so you know the **real‐money** error.
-
-### Why we look for it
-
-* **Log‐scale metrics** let you validate the transform helped stabilize errors.
-* **Original‐scale metrics** are what stakeholders (e.g. scouts, analysts) actually care about: “we’re off by €X M on average.”
+* **Why**
+  Serves as a simple benchmark: if your complex models can’t beat this, revisit your pipeline.
 
 ---
 
-## 🤖 7. Advanced Models & Hyperparameter Search
+## 5. Baseline Metrics
 
-### Code (excerpt)
+```python
+print("Baseline LinearRegression")
+print(f"  RMSE: {np.sqrt(mean_squared_error(y_test, y_pred)):.0f}")
+print(f"  R² : {r2_score(y_test, y_pred):.3f}")
+```
+
+**Output:**
+
+```
+Baseline LinearRegression
+  RMSE: 10
+  R² : 0.436
+```
+
+* **RMSE (Root Mean Squared Error)** ≈ 10 M € — average absolute error.
+* **R²** ≈ 0.436 — explains 43.6% of variance in player prices.
+
+---
+
+## 6. Advanced Models & Hyperparameter Search
 
 ```python
 models = {
-  'ridge': {...},
-  'lasso': {...},
-  'rf':    {...},
-  'xgb':   {...}
+  'ridge': { 'model': Ridge(), 'params': {'model__alpha': [0.1,1,10]} },
+  'lasso': { 'model': Lasso(max_iter=5000), 'params': {'model__alpha': [0.01,0.1,1]} },
+  'rf':    { 'model': RandomForestRegressor(random_state=42),
+             'params': {'model__n_estimators':[100,200],'model__max_depth':[None,10,20]} },
+  'xgb':   { 'model': XGBRegressor(objective='reg:squarederror',random_state=42),
+             'params': {'model__n_estimators':[100,200],'model__max_depth':[3,6],'model__learning_rate':[0.01,0.1]} }
 }
-for name, cfg in models.items():
-    gs = GridSearchCV(
-      Pipeline([('pre', wrapped_pre), ('model', cfg['model'])]),
-      cfg['params'], cv=5, scoring='neg_root_mean_squared_error'
-    )
-    gs.fit(X_train, y_train_log)
-    # back-transform + compute RMSE & R²
+
+for name,cfg in models.items():
+    pipe = Pipeline([('pre', preprocessor),('model', cfg['model'])])
+    gs = GridSearchCV(pipe, cfg['params'], cv=5,
+                      scoring='neg_root_mean_squared_error', n_jobs=-1)
+    gs.fit(X_train, y_train)
+    y_hat = gs.predict(X_test)
+    rmse  = np.sqrt(mean_squared_error(y_test, y_hat))
+    r2    = r2_score(y_test, y_hat)
+    print(f"{name.upper():<5} RMSE={rmse:.0f}, R2={r2:.3f}, best_params={gs.best_params_}")
 ```
 
-### What it does
+**Output:**
 
-* **Sets up** four different model families:
+```
+RIDGE RMSE=6, R2=0.803, best_params={'model__alpha': 10}
+LASSO RMSE=6, R2=0.817, best_params={'model__alpha': 0.1}
+RF    RMSE=6, R2=0.826, best_params={'model__max_depth':10,'model__n_estimators':100}
+XGB   RMSE=4, R2=0.908, best_params={'model__learning_rate':0.1,'model__max_depth':3,'model__n_estimators':100}
+```
 
-  * **Ridge** (L2‐regularized linear)
-  * **Lasso** (L1‐regularized linear)
-  * **Random Forest** (bagged decision trees)
-  * **XGBoost** (gradient‐boosted trees)
-* **Grid‐searches** each over sensible hyperparameter grids (α for regularization, tree depth & count, etc.)
-* **Evaluates** them on the test set (back‐transforming predictions) to find the absolute best RMSE & R².
-
-### Why we look for it
-
-* **Regularization** often beats plain LinearRegression by controlling over‐fit.
-* **Tree‐based** methods capture non‐linearities and interactions at the cost of more complexity.
-* Documenting the parameter grids shows how you balance model complexity vs. generalization.
+* **Ridge/Lasso**: regularized linear models.
+* **Random Forest**: bagged decision trees.
+* **XGBoost**: gradient-boosted trees.
+* **GridSearchCV** finds optimal hyperparameters via 5-fold CV.
 
 ---
 
-## 💾 8. Model Persistence
+## 7. Combined Performance Table
 
-### Code
+| Model                  | RMSE (M €) |    R² |
+| ---------------------- | ---------: | ----: |
+| **Baseline (Linear)**  |         10 | 0.436 |
+| **Ridge**              |          6 | 0.803 |
+| **Lasso**              |          6 | 0.817 |
+| **Random Forest (RF)** |          6 | 0.826 |
+| **XGBoost (XGB)**      |          4 | 0.908 |
 
-```python
-os.makedirs(os.path.join(repo_root, 'models'), exist_ok=True)
-joblib.dump(best_model, os.path.join(repo_root, 'models', 'best_model.pkl'))
-```
-
-### What it does
-
-* **Creates** a `models/` folder if needed.
-* **Serializes** the chosen best‐performer so you can load it later (e.g. in a web app or scoring script) without retraining.
-
-### Why we look for it
-
-* Ensures **reproducibility**: everyone uses the exact same weights & encodings.
-* Documenting persistence explains the handoff between “training” and “production.”
+* **RMSE**: average prediction error in millions of euros (lower is better).
+* **R²**: fraction of variance explained (higher is better).
 
 ---
 
-## 🔑 9. Feature Importances
-
-### Code
+## 8. Persisting the Best Model
 
 ```python
-imps = best_model.named_steps['model'].feature_importances_
-names = full_pre.get_feature_names_out()
-top10 = pd.DataFrame({'feature': names, 'importance': imps}).nlargest(10, 'importance')
-print(top10)
+os.makedirs(os.path.join(repo_root,'models'), exist_ok=True)
+joblib.dump(best_model, os.path.join(repo_root,'models','best_model.pkl'))
 ```
 
-### What it does
-
-* **Extracts** tree‐based feature importances and pairs them with the transformer’s output names.
-* **Prints** the top 10 drivers of your model’s decisions.
-
-### Why we look for it
-
-* **Interpretability**: tells you which inputs matter most (e.g. `max_price`, `agent`, `age`).
-* Documenting it guides business users to focus on the right signals and suggests new features to engineer.
+* **Saves** the pipeline (preprocessor + estimator) for later use in scoring or deployment.
 
 ---
 
-## 🔍 10. SHAP Explanations
-
-### Code
+## 9. Feature Importances
 
 ```python
+tree = best_model.named_steps['model']
+imps  = tree.feature_importances_
+names = preprocessor.get_feature_names_out()
+top10 = pd.DataFrame({'feature':names,'importance':imps})\
+           .nlargest(10,'importance')
+print(top10.to_string(index=False))
+```
+
+**Output:**
+
+```
+                           feature  importance
+                    num__max_price    0.491740
+            cat__player_agent_Roof    0.089389
+  cat__player_agent_Sports360 Gmbh    0.082507
+                        num__age    0.060587
+           cat__outfitter_Unknown    0.034035
+          cat__club_Bayern Munich    0.021392
+             cat__club_Rb Leipzig    0.020178
+                      num__height    0.015207
+cat__position_midfield - Central    0.015092
+         cat__club_Bor. Dortmund    0.014523
+```
+
+* **`max_price`** dominates (\~49% of importance).
+* **Agent**, **age**, **club**, **height**, **position** follow.
+
+---
+
+## 10. SHAP Explanations
+
+```python
+X_train_enc = preprocessor.transform(X_train)
+X_test_enc  = preprocessor.transform(X_test)
+if hasattr(X_train_enc,'toarray'):
+    X_train_enc = X_train_enc.toarray()
+    X_test_enc  = X_test_enc.toarray()
+
 explainer = shap.TreeExplainer(tree, data=X_train_enc)
-shap_vals  = explainer.shap_values(X_test_enc, check_additivity=False)
-shap.summary_plot(shap_vals, X_test_enc, feature_names=full_pre.get_feature_names_out())
+shap_vals  = explainer.shap_values(X_test_enc)
+shap.summary_plot(shap_vals, X_test_enc, feature_names=names)
 ```
 
-### What it does
-
-* **Builds** a SHAP explainer for your tree model, passing in the encoded training data.
-* **Computes** SHAP values on the test set (disabling a strict additivity check to avoid numerical errors).
-* **Plots** a summary showing, for each feature, how positive vs. negative values push predictions up or down.
-
-### Why we look for it
-
-* **Granular interpretability**: unlike global importances, SHAP shows how each feature **influenced each individual prediction**.
-* Documenting it demonstrates best practice for transparent ML in business/academic projects.
+* **SHAP** assigns each feature a “push” on each prediction for interpretability.
+* **Summary plot** shows global and individual effects.
 
 ---
 
-## 📈 11. Interpreting the Performance Table
+## 11. Interpreting the Metrics
 
-| Model                  | RMSE | R²    |
-| ---------------------- | ---- | ----- |
-| **Baseline (Linear)**  | 10   | 0.436 |
-| **Ridge**              | 6    | 0.803 |
-| **Lasso**              | 6    | 0.817 |
-| **Random Forest (RF)** | 6    | 0.826 |
-| **XGBoost (XGB)**      | 4    | 0.908 |
+* **Baseline LinearRegression**
 
-* **RMSE**: “On average, we’re off by €X M.”
+  * RMSE = 10 M €, R² = 0.436 → linear model explains \~43.6% of price variance.
 
-  * Lower is better; halving RMSE from 10 → 4 shows your final model is twice as precise as the baseline.
-* **R²**: “We explain X% of the variation in player prices.”
+* **Ridge & Lasso**
 
-  * R² = 0.908 means you capture over 90% of the predictable signal in the data.
+  * RMSE ≈ 6 M €, R² ≈ 0.80 → regularization cuts error by \~40%.
 
-### Why these outputs
+* **Random Forest & XGBoost**
 
-* **Benchmarking**: you need both an **absolute error** metric (RMSE) and a **relative fit** metric (R²) to fully assess model quality.
-* **Model selection**: you choose the model with the lowest RMSE (here, XGBoost) as your final predictor.
+  * RF: RMSE ≈ 6 M €, R² ≈ 0.826
+  * XGB: **RMSE ≈ 4 M €, R² ≈ 0.908** ← **best performer**
 
 ---
 
-## 🔧 12. Hyperparameter Takeaways
+### Why These Outputs?
 
-* **Ridge α=10**: strong L2 penalty shrank coefficients, reducing variance.
-* **Lasso α=0.1**: mild L1 penalty zeroed out only the weakest signals.
-* **RF (n=100, depth=10)**: balanced the depth vs. number of trees to capture non-linearities without over-fitting.
-* **XGB (η=0.1, depth=3, n=100)**: shallow, slow‐learning boosted trees generalized best.
-
-### Why we examine these
-
-* **Regularization strength** tells you how “complex” a linear model your data needs.
-* **Tree depths & counts** reveal how intricate the non-linear patterns are.
+* **RMSE** (absolute error) speaks directly to business impact: “On average, our model is off by €4 M.”
+* **R²** (relative fit) tells data scientists how much of the predictable signal in the data has been captured.
+* **Feature importances** guide feature engineering priorities.
+* **SHAP** provides transparency for model-driven decisions.
 
 ---
-
-### How to use this documentation
-
-1. **Copy** each section into your project’s docs (e.g. `docs/pipeline.md` or the `README`).
-2. **Embed** code snippets alongside explanation so readers see both the **“how”** and the **“why.”**
-3. **Annotate** any future changes (new features, CV strategy tweaks) by adding new sections following this template.
-
-This gives you a self-contained, fully annotated reference that explains not just *what* each block does, but *why* you included it, *what* you’re measuring, and *how* to interpret every metric and plot.
