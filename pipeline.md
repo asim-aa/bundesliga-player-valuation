@@ -108,16 +108,17 @@ Baseline LinearRegression
 
 ```python
 models = {
-  'ridge': { 'model': Ridge(), 'params': {'model__alpha': [0.1,1,10]} },
-  'lasso': { 'model': Lasso(max_iter=5000), 'params': {'model__alpha': [0.01,0.1,1]} },
+  'ridge': { 'model': Ridge(), 'params': {'model__alpha':[0.1,1,10]} },
+  'lasso': { 'model': Lasso(max_iter=5000),'params':{'model__alpha':[0.01,0.1,1]} },
   'rf':    { 'model': RandomForestRegressor(random_state=42),
-             'params': {'model__n_estimators':[100,200],'model__max_depth':[None,10,20]} },
+             'params':{'model__n_estimators':[100,200],'model__max_depth':[None,10,20]} },
   'xgb':   { 'model': XGBRegressor(objective='reg:squarederror',random_state=42),
-             'params': {'model__n_estimators':[100,200],'model__max_depth':[3,6],'model__learning_rate':[0.01,0.1]} }
+             'params':{'model__n_estimators':[100,200],'model__max_depth':[3,6],
+                       'model__learning_rate':[0.01,0.1]} }
 }
 
 for name,cfg in models.items():
-    pipe = Pipeline([('pre', preprocessor),('model', cfg['model'])])
+    pipe = Pipeline([('pre',preprocessor),('model',cfg['model'])])
     gs = GridSearchCV(pipe, cfg['params'], cv=5,
                       scoring='neg_root_mean_squared_error', n_jobs=-1)
     gs.fit(X_train, y_train)
@@ -130,8 +131,8 @@ for name,cfg in models.items():
 **Output:**
 
 ```
-RIDGE RMSE=6, R2=0.803, best_params={'model__alpha': 10}
-LASSO RMSE=6, R2=0.817, best_params={'model__alpha': 0.1}
+RIDGE RMSE=6, R2=0.803, best_params={'model__alpha':10}
+LASSO RMSE=6, R2=0.817, best_params={'model__alpha':0.1}
 RF    RMSE=6, R2=0.826, best_params={'model__max_depth':10,'model__n_estimators':100}
 XGB   RMSE=4, R2=0.908, best_params={'model__learning_rate':0.1,'model__max_depth':3,'model__n_estimators':100}
 ```
@@ -153,7 +154,7 @@ XGB   RMSE=4, R2=0.908, best_params={'model__learning_rate':0.1,'model__max_dept
 | **Random Forest (RF)** |          6 | 0.826 |
 | **XGBoost (XGB)**      |          4 | 0.908 |
 
-* **RMSE**: average prediction error in millions of euros (lower is better).
+* **RMSE**: average error in millions of euros (lower is better).
 * **R²**: fraction of variance explained (higher is better).
 
 ---
@@ -187,17 +188,17 @@ print(top10.to_string(index=False))
                     num__max_price    0.491740
             cat__player_agent_Roof    0.089389
   cat__player_agent_Sports360 Gmbh    0.082507
-                        num__age    0.060587
+                        num__age     0.060587
            cat__outfitter_Unknown    0.034035
           cat__club_Bayern Munich    0.021392
              cat__club_Rb Leipzig    0.020178
                       num__height    0.015207
 cat__position_midfield - Central    0.015092
-         cat__club_Bor. Dortmund    0.014523
+         cat__club_Bor. Dortmund     0.014523
 ```
 
-* **`max_price`** dominates (\~49% of importance).
-* **Agent**, **age**, **club**, **height**, **position** follow.
+* **`max_price`** dominates (\~49% importance).
+* **Agent**, **age**, **height**, **club**, **position** follow.
 
 ---
 
@@ -215,8 +216,8 @@ shap_vals  = explainer.shap_values(X_test_enc)
 shap.summary_plot(shap_vals, X_test_enc, feature_names=names)
 ```
 
-* **SHAP** assigns each feature a “push” on each prediction for interpretability.
-* **Summary plot** shows global and individual effects.
+* **SHAP** assigns each feature a “push” on each prediction.
+* **Summary plot** shows global and individual feature effects.
 
 ---
 
@@ -235,13 +236,9 @@ shap.summary_plot(shap_vals, X_test_enc, feature_names=names)
   * RF: RMSE ≈ 6 M €, R² ≈ 0.826
   * XGB: **RMSE ≈ 4 M €, R² ≈ 0.908** ← **best performer**
 
----
+**Why these outputs?**
 
-### Why These Outputs?
+* RMSE addresses “How far off are we in €?”
+* R² addresses “How much of the predictable signal did we capture?”
+* Feature importances & SHAP offer transparency on model behavior.
 
-* **RMSE** (absolute error) speaks directly to business impact: “On average, our model is off by €4 M.”
-* **R²** (relative fit) tells data scientists how much of the predictable signal in the data has been captured.
-* **Feature importances** guide feature engineering priorities.
-* **SHAP** provides transparency for model-driven decisions.
-
----
