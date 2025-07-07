@@ -19,7 +19,7 @@ def main():
     )
     # hidden defaults
     parser.add_argument('--start-date', default='2025-01-01', help=argparse.SUPPRESS)
-    parser.add_argument('--periods',    type=int, default=12,        help=argparse.SUPPRESS)
+    parser.add_argument('--periods',    type=int, default=48,        help=argparse.SUPPRESS)
     parser.add_argument('--freq',       default='ME',                help=argparse.SUPPRESS)
 
     args = parser.parse_args()
