@@ -15,7 +15,7 @@ import os
 import pandas as pd
 import numpy as np
 import joblib
-#import pickle
+import pickle
 from pathlib import Path
 
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -31,6 +31,7 @@ from sklearn.pipeline import Pipeline
 import shap
 
 
+
 def load_model(model_path: str):
     """
     Load a scikit-learn Pipeline or estimator via joblib.
@@ -39,9 +40,20 @@ def load_model(model_path: str):
     if not model_path.exists():
         raise FileNotFoundError(f"{model_path} not found")
     model = joblib.load(model_path)
-    # debug output
     print(f"[load_model] loaded object of type: {type(model)} from {model_path}")
     return model
+
+
+def load_data(csv_path: str):
+    """
+    Load your processed player-features CSV into a DataFrame,
+    parsing any date columns you need.
+    """
+    df = pd.read_csv(
+        csv_path,
+        parse_dates=['joined_club', 'contract_expires'],  # adjust if needed
+    )
+    return df
 
 
 def main():
