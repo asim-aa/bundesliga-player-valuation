@@ -6,7 +6,7 @@ from pathlib import Path
 
 # project_root/src/final.py ⇒ project_root
 BASE_DIR = Path(__file__).resolve().parent.parent
-MODEL_PATH = BASE_DIR / "models" / "best_model.pkl"
+MODEL_PATH = BASE_DIR / "models" / "best_pipeline.pkl"
 DATA_PATH  = BASE_DIR / "data"   / "processed" / "players_features.csv"
 
 def main():
@@ -20,7 +20,7 @@ def main():
     # hidden defaults
     parser.add_argument('--start-date', default='2025-01-01', help=argparse.SUPPRESS)
     parser.add_argument('--periods',    type=int, default=12,        help=argparse.SUPPRESS)
-    parser.add_argument('--freq',       default='M',                help=argparse.SUPPRESS)
+    parser.add_argument('--freq',       default='ME',                help=argparse.SUPPRESS)
 
     args = parser.parse_args()
 

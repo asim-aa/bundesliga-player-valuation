@@ -30,6 +30,12 @@ from sklearn.pipeline import Pipeline
 
 import shap
 
+
+def load_model(model_path: str):
+    """
+    Load a scikit-learn Pipeline or estimator from disk via joblib.
+    """
+    return joblib.load(model_path)
 def main():
     # 1) Load cleaned data
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
