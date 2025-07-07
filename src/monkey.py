@@ -1,3 +1,3 @@
-import pickle
-model = pickle.load(open("models/best_model.pkl","rb"))
-print(model, type(model))
+import joblib
+m = joblib.load("models/best_pipeline.pkl")
+print(type(m))

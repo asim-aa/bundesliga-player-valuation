@@ -15,7 +15,7 @@ import os
 import pandas as pd
 import numpy as np
 import joblib
-import pickle
+#import pickle
 from pathlib import Path
 
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -30,6 +30,7 @@ from sklearn.pipeline import Pipeline
 
 import shap
 
+
 def load_model(model_path: str):
     """
     Load a scikit-learn Pipeline or estimator via joblib.
@@ -37,7 +38,11 @@ def load_model(model_path: str):
     model_path = Path(model_path)
     if not model_path.exists():
         raise FileNotFoundError(f"{model_path} not found")
-    return joblib.load(model_path)
+    model = joblib.load(model_path)
+    # debug output
+    print(f"[load_model] loaded object of type: {type(model)} from {model_path}")
+    return model
+
 
 def main():
     # 1) Load cleaned data
