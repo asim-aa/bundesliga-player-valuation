@@ -16,13 +16,5 @@ def load_model(model_path: str):
 
 
 def load_data(csv_path: str):
-    """
-    Load processed player-features CSV into a DataFrame,
-    parsing date columns as needed.
-    """
-    df = pd.read_csv(
-        csv_path,
-        parse_dates=['joined_club', 'contract_expires'],
-        infer_datetime_format=True
-    )
+    df = pd.read_csv(csv_path)
     return df
