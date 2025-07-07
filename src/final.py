@@ -2,6 +2,13 @@ import argparse
 from model_pipeline import load_model, load_data
 from prediction import predict_value_progression
 import matplotlib.pyplot as plt
+from pathlib import Path
+
+# project_root/src/final.py ⇒ project_root
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+MODEL_PATH = BASE_DIR / "models" / "best_model.pkl"
+DATA_PATH  = BASE_DIR / "data"   / "processed" / "players_features.csv"
 
 
 def main():
@@ -34,10 +41,9 @@ def main():
     args = parser.parse_args()
 
     # Load your pre-trained model and necessary data
-    model = load_model('models/best_model.pkl')
-    df = load_data('data/processed/players_features.csv')
+    model = load_model(str(MODEL_PATH))
+    df    = load_data(str(DATA_PATH))
 
-    # Run prediction
     dates, values = predict_value_progression(
         model,
         df,
