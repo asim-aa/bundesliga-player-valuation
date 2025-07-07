@@ -15,6 +15,8 @@ import os
 import pandas as pd
 import numpy as np
 import joblib
+import pickle
+from pathlib import Path
 
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
@@ -161,6 +163,29 @@ def main():
         X_test_enc,
         feature_names=clean_names
     )
+
+# src/model_pipeline.py
+
+
+def load_model(model_path: str):
+    """
+    Load a pickled sklearn model from disk.
+    """
+    model_path = Path(model_path)
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
+    return model
+
+def load_data(csv_path: str):
+    """
+    Load your processed player‐features CSV into a DataFrame,
+    parsing any date columns you need.
+    """
+    df = pd.read_csv(
+        csv_path,
+        parse_dates=['joined_club', 'contract_expires'],  # adjust if needed
+    )
+    return df
 
 
 if __name__ == '__main__':
