@@ -6,45 +6,47 @@ import matplotlib.pyplot as plt
 from model_pipeline import load_model, load_data
 from prediction import predict_value_progression
 
+# project_root/src/predict_player_progression.py ⇒ project_root
+BASE_DIR   = Path(__file__).resolve().parent.parent
+MODEL_PATH = BASE_DIR / "models" / "best_pipeline.pkl"
+DATA_PATH  = BASE_DIR / "data"   / "processed" / "players_features.csv"
+
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Predict market-value progression for a Bundesliga player."
+        description="Predict future market-value progression for a Bundesliga player."
     )
     parser.add_argument(
-        'player_name',
-        help="Player’s name as in the dataset ('name' column)."
+        "player_name",
+        help="Full name of the player (e.g. 'Jamal Musiala')."
     )
     parser.add_argument(
-        '--start-date',
+        "--start-date",
+        dest="start_date",
         default=None,
-        help="Start date for projection (YYYY-MM-DD). Defaults to today."
+        help="Projection start date (YYYY-MM-DD). Defaults to today."
     )
     parser.add_argument(
-        '--periods',
+        "--periods",
         type=int,
         default=12,
-        help="Number of future periods to project (default: 12)."
+        help="Number of periods to project (default: 12)."
     )
     parser.add_argument(
-        '--freq',
-        default='ME',
-        help="Frequency string for pd.date_range (e.g. 'ME', 'M', 'W'; default: 'ME')."
+        "--freq",
+        default="ME",
+        help="Date frequency string for pd.date_range (e.g. 'ME', 'M', 'W'; default: 'ME')."
     )
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
 
-    # Resolve paths relative to project root
-    BASE = Path(__file__).resolve().parent.parent
-    MODEL_PATH = BASE / 'models' / 'best_pipeline.pkl'
-    DATA_PATH  = BASE / 'data'   / 'processed' / 'players_features.csv'
-
-    # Load model and data
+    # load model & data
     model = load_model(str(MODEL_PATH))
     df    = load_data(str(DATA_PATH))
 
-    # Generate projections
+    # generate projection
     dates, values = predict_value_progression(
         model,
         df,
@@ -54,15 +56,16 @@ def main():
         freq=args.freq
     )
 
-    # Plot results
+    # plot results
     plt.figure(figsize=(8, 4))
-    plt.plot(dates, values, marker='o')
+    plt.plot(dates, values, marker="o")
     plt.title(f"Predicted Value Progression for {args.player_name}")
-    plt.xlabel('Date')
-    plt.ylabel('Market Value (€)')
+    plt.xlabel("Date")
+    plt.ylabel("Market Value (€)")
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
+
 
 if __name__ == '__main__':
     main()
