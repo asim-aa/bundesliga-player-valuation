@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 from pathlib import Path
+from datetime import date
 import matplotlib.pyplot as plt
 
 from model_pipeline import load_model, load_data
@@ -22,21 +23,44 @@ def parse_args():
     parser.add_argument(
         '--periods',
         type=int,
-        default=12,
-        help="Number of future periods to project (default: 12)."
+        default=None,
+        help="Number of future periods to project (default: 12). Ignored if --years is set."
     )
     parser.add_argument(
         '--freq',
         default='ME',
-        help="Frequency string for pd.date_range (e.g. 'ME', 'M', 'W'; default: 'ME')."
+        help="Frequency string for pd.date_range (e.g. 'ME', 'M', 'W', 'Y'; default: 'ME')."
+    )
+    parser.add_argument(
+        '--years',
+        type=int,
+        default=None,
+        help="Shortcut to project over N years (will override --periods)."
     )
     return parser.parse_args()
 
 def main():
     args = parse_args()
 
+    # if no start-date, use today
+    start = args.start_date or date.today().isoformat()
+
+    # determine number of periods
+    if args.years is not None:
+        freq_upper = args.freq.upper()
+        if freq_upper in ('M', 'ME'):
+            periods = args.years * 12
+        elif freq_upper in ('Y', 'A'):
+            periods = args.years
+        else:
+            # fallback: treat years as periods count
+            periods = args.years
+    else:
+        # either user passed --periods or we default to 12
+        periods = args.periods if args.periods is not None else 12
+
     # Resolve paths relative to project root
-    BASE = Path(__file__).resolve().parent.parent
+    BASE       = Path(__file__).resolve().parent.parent
     MODEL_PATH = BASE / 'models' / 'best_pipeline.pkl'
     DATA_PATH  = BASE / 'data'   / 'processed' / 'players_features.csv'
 
@@ -49,8 +73,8 @@ def main():
         model,
         df,
         player_name=args.player_name,
-        start_date=args.start_date,
-        periods=args.periods,
+        start_date=start,
+        periods=periods,
         freq=args.freq
     )
 
