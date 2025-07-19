@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Bundesliga Player Valuation
 
 Welcome to the Bundesliga Player Valuation project! This is where my two greatest passions collide: the beautiful game of soccer and the elegant world of mathematics.
