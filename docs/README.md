@@ -5,7 +5,7 @@ Welcome to the Bundesliga Player Valuation project! This is where my two greates
 
 ## My Passion for Soccer
 
-Soccer has been more than a sport to me—it’s a lifelong love affair. From the roar of the stadium to the thrill of a last-minute goal, the game captivates millions around the globe. Whether I’m watching my favorite teams battle it out or playing a quick pick-up game with friends, each match fuels my excitement and inspires me to learn more about the intricacies behind every pass, dribble, and shot.
+Soccer has been more than a sport to me, it’s a lifelong love affair. From the roar of the stadium to the thrill of a last-minute goal, the game captivates millions around the globe. Whether I’m watching my favorite teams battle it out or playing a quick pick-up game with friends, each match fuels my excitement and inspires me to learn more about the intricacies behind every pass, dribble, and shot.
 
 ## Curiosity for the Numbers
 
