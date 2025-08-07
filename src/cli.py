@@ -69,3 +69,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+#can also do: python src/cli.py --start-date 2025-01-01 --periods 60 --freq M "Jamal Musiala"
