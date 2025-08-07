@@ -90,3 +90,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+#to run the code, compile and run: python src/final.py --years 5 --freq Y "Jamal Musiala"
