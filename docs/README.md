@@ -14,7 +14,7 @@ As I immersed myself deeper into the game, I began to notice patterns in player 
 
 ## The Intersection of Math and Soccer
 
-In this repository you will discover a complete data-science workflow tailored to Bundesliga player valuation. You’ll see how raw player and match data are cleaned, explored through intuitive visualizations, and transformed into features that reflect both static attributes and age-related progression. A suite of predictive models—from simple linear regressions to advanced tree-based ensembles—has been compared and tuned to deliver the most accurate market-value estimates. Finally, an easy-to-use interface lets you generate personalized forecasts for any player in just a moment.
+In this repository you will discover a complete data-science workflow tailored to Bundesliga player valuation. You’ll see how raw player and match data are cleaned, explored through intuitive visualizations, and transformed into features that reflect both static attributes and age-related progression. A suite of predictive models from simple linear regressions to advanced tree-based ensembles, which have been compared and tuned to deliver the most accurate market-value estimates. Finally, an easy-to-use interface lets you generate personalized forecasts for any player in just a moment.
 
 
 ---
