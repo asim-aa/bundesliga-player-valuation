@@ -1,3 +1,10 @@
+# Bundesliga player market value regression pipeline
+# - Loads processed player data from CSV
+# - Builds preprocessing (impute/scale/encode) + RandomForest regressor
+# - Trains, evaluates, and saves a scikit-learn Pipeline via joblib
+# Usage example:
+#   python -m src.model_pipeline data/processed_players.csv models/pipeline.joblib --test-size 0.2
+
 import joblib
 import pandas as pd
 from pathlib import Path
@@ -23,6 +30,7 @@ CATEGORICAL_FEATURES = [
 ]
 
 
+# Load CSV and compute engineered features.
 def load_data(csv_path: str) -> pd.DataFrame:
     """
     Load the CSV into a DataFrame and compute any engineered features.
@@ -34,6 +42,7 @@ def load_data(csv_path: str) -> pd.DataFrame:
     return df
 
 
+# Build ColumnTransformer for numeric/categorical preprocessing.
 def build_preprocessor() -> ColumnTransformer:
     """
     Create a ColumnTransformer: imputes + scales numerics, imputes + encodes categoricals.
@@ -57,6 +66,7 @@ def build_preprocessor() -> ColumnTransformer:
     return preprocessor
 
 
+# Assemble preprocessing + RandomForest into a Pipeline.
 def build_model_pipeline() -> Pipeline:
     """
     Assemble preprocessing + RandomForest regressor.
@@ -73,6 +83,7 @@ def build_model_pipeline() -> Pipeline:
     return pipeline
 
 
+# Train pipeline, evaluate on holdout, and save to disk.
 def train_and_save_model(
     csv_path: str,
     model_path: str,
@@ -106,6 +117,7 @@ def train_and_save_model(
     print(f"[train] Saved pipeline to: {model_path}")
 
 
+# Load a saved scikit-learn Pipeline from disk.
 def load_model(model_path: str):
     """
     Load a saved sklearn Pipeline via joblib.
@@ -121,6 +133,7 @@ def load_model(model_path: str):
 if __name__ == '__main__':
     import argparse
 
+    # CLI entry point: parse args, train, evaluate, and save the model.
     parser = argparse.ArgumentParser(
         description='Train & save the market-value regression pipeline.'
     )
