@@ -43,5 +43,3 @@ With clean data in hand, I moved on to feature engineering. This means deriving 
 I put this logic into `src/features/build_features.py` and saved the enhanced dataset to **`data/processed/players_features.csv`**.
 
 ---
-
-With these steps complete, the project is ready for the next phases—which include building predictive models, creating visualizations, and drawing compelling insights about the most valuable players in the Bundesliga. Feel free to explore the code, review the data files, and see how analytics can bring a fresh perspective to the beautiful game!
