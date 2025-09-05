@@ -57,4 +57,4 @@ The script displays two bar plots:
 - Test RMSE by model
 - Test R² by model
 
-If you prefer to save the plots to disk, I can add an option to write figures to `docs/assets/`.
+
