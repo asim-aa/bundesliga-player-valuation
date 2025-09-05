@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# Model tuning and comparison for market-value regression.
+# - Loads pre-split train/test data
+# - Builds a preprocessing pipeline (impute/scale/encode)
+# - Tunes multiple models via GridSearchCV and evaluates on test set
+# - Prints a comparison table and plots RMSE/R² bars
+# Usage:
+#   python src/model_tuning_and_comparison.py
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,6 +20,7 @@ from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 
+# Load pre-saved train/test splits from data/processed.
 def load_splits():
     X_train = pd.read_csv("data/processed/X_train.csv")
     X_test  = pd.read_csv("data/processed/X_test.csv")
@@ -27,6 +35,7 @@ def load_splits():
 
     return X_train, X_test, y_train, y_test
 
+# Build ColumnTransformer based on inferred numeric/categorical columns.
 def build_preprocessor(X_train):
     num_cols = X_train.select_dtypes(include=["int64","float64"]).columns.tolist()
     cat_cols = X_train.select_dtypes(include=["object","category"]).columns.tolist()
@@ -45,6 +54,7 @@ def build_preprocessor(X_train):
         ("cat", cat_pipe, cat_cols),
     ])
 
+# Tune several regressors with GridSearchCV and compare on the test set.
 def main():
     X_train, X_test, y_train, y_test = load_splits()
     preprocessor = build_preprocessor(X_train)
@@ -75,6 +85,7 @@ def main():
         }
     }
 
+    # Collect per-model metrics for comparison.
     records = []
     for name, md in model_defs.items():
         print(f"\n→ Tuning {name}…")

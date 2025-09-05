@@ -1,4 +1,11 @@
 numPy
 pandas
 matplotlib
+numpy
+scikit-learn
+joblib
+# Optional but used in tuning
+xgboost
+# Optional for fetch scripts
+wptools
 seaborn

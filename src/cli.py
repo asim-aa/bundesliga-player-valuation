@@ -26,7 +26,14 @@ def parse_args():
     )
     parser.add_argument(
         "player_name",
+        nargs="?",
+        default=None,
         help="Full name of the player (e.g. 'Jamal Musiala')."
+    )
+    parser.add_argument(
+        "-i", "--interactive",
+        action="store_true",
+        help="Interactive mode: prompt for player, frequency, and horizon."
     )
     parser.add_argument(
         "--start-date",
@@ -58,20 +65,68 @@ def parse_args():
 def main():
     args = parse_args()
 
-    # Determine start date (default to today if not provided)
-    start = args.start_date or date.today().isoformat()
+    def interactive_inputs():
+        print("Interactive mode: answer the prompts below.")
+        # Player name
+        while True:
+            name = input("Player name: ").strip()
+            if name:
+                break
+            print("Please enter a non-empty name.")
 
-    # Determine number of periods
-    if args.years is not None:
-        freq_upper = (args.freq or "").upper()
-        if freq_upper in ("M", "ME"):
-            periods = args.years * 12
-        elif freq_upper in ("Y", "A"):
-            periods = args.years
-        else:
-            periods = args.years
+        # Frequency selection
+        freq_map = {"M": "M", "ME": "ME", "Y": "Y", "A": "Y"}
+        while True:
+            freq_in = input("Project by months or years? [M/Y] (default M): ").strip().upper()
+            if not freq_in:
+                freq = "ME"  # month-end by default for better plots
+                break
+            if freq_in in freq_map:
+                freq = freq_map[freq_in]
+                break
+            print("Please enter 'M' for monthly or 'Y' for yearly.")
+
+        # Horizon
+        unit = "months" if freq in ("M", "ME") else "years"
+        while True:
+            horizon_str = input(f"How many {unit}? (e.g., 12): ").strip()
+            try:
+                horizon = int(horizon_str)
+                if horizon <= 0:
+                    raise ValueError
+                break
+            except ValueError:
+                print("Please enter a positive whole number.")
+
+        # Start date
+        start_in = input("Start date YYYY-MM-DD (leave blank for today): ").strip()
+        start = start_in or date.today().isoformat()
+
+        # Periods determination
+        periods = horizon  # months if monthly freq, years if yearly freq
+        return name, start, periods, freq
+
+    if args.interactive:
+        player_name, start, periods, freq = interactive_inputs()
     else:
-        periods = args.periods if args.periods is not None else 12
+        if not args.player_name:
+            raise SystemExit("error: player_name is required unless --interactive is used")
+        player_name = args.player_name
+        # Determine start date (default to today if not provided)
+        start = args.start_date or date.today().isoformat()
+        # Determine number of periods
+        if args.years is not None:
+            freq_upper = (args.freq or "").upper()
+            if freq_upper in ("M", "ME"):
+                periods = args.years * 12
+            elif freq_upper in ("Y", "A"):
+                periods = args.years
+            else:
+                periods = args.years
+            freq = args.freq
+        else:
+            periods = args.periods if args.periods is not None else 12
+            freq = args.freq
 
     # Load model & data
     model = load_model(str(MODEL_PATH))
@@ -81,16 +136,16 @@ def main():
     dates, values = predict_value_progression(
         model,
         df,
-        player_name=args.player_name,
+        player_name=player_name,
         start_date=start,
         periods=periods,
-        freq=args.freq
+        freq=freq
     )
 
     # Plot results
     plt.figure(figsize=(8, 4))
     plt.plot(dates, values, marker="o")
-    plt.title(f"Predicted Value Progression for {args.player_name}")
+    plt.title(f"Predicted Value Progression for {player_name}")
     plt.xlabel("Date")
     plt.ylabel("Market Value (€)")
     plt.xticks(rotation=45)

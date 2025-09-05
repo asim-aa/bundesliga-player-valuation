@@ -1,10 +1,18 @@
 """
-tester_fetch_parallel.py
+Fetch player dates of birth from Wikipedia in parallel and save to CSV.
 
-- Reads /Users/asim/bundesliga-player-valuation/data/processed/players_clean.csv
-- Parallelizes Wikipedia queries for each name (max 8 threads)
-- Parses raw infobox date into DD-MM-YYYY
-- Writes a CSV 'birthdays_output.csv' next to this script
+What it does:
+- Reads player names from a CSV (column 'name').
+- Queries Wikipedia (via wptools) for each player's infobox.
+- Extracts and normalizes birth date strings to DD-MM-YYYY when possible.
+- Writes results to 'birthdays_output.csv' alongside this script.
+
+Usage:
+  python fetch-scripts/tester_fetch_parallel.py
+
+Notes:
+- Requires the 'wptools' package and internet access.
+- Update CSV_INPUT below if your processed players CSV is located elsewhere.
 """
 import os
 import sys
@@ -16,13 +24,17 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import redirect_stdout, redirect_stderr
 
 # ───── CONFIG ────────────────────────────────────────────────────────────────
+# Absolute path to the input CSV containing a 'name' column.
 CSV_INPUT    = "/Users/asim/bundesliga-player-valuation/data/processed/players_clean.csv"
+# Column name in CSV that holds player names.
 NAME_COLUMN  = "name"
+# Number of threads to use for concurrent requests.
 MAX_WORKERS  = 8
+# Directory for writing the output CSV (next to this script).
 SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_CSV   = os.path.join(SCRIPT_DIR, "birthdays_output.csv")
 
-# month name → number map
+# Month name → number map for parsing textual dates.
 _MONTHS = {
     'January': 1, 'Jan': 1,
     'February': 2, 'Feb': 2,
@@ -62,7 +74,7 @@ def _normalize_dob(raw: str) -> str:
         return f"{int(d):02d}-{int(mo):02d}-{y}"
 
     # 3) Textual format: 'DD Month YYYY' (possibly with '(age …)')
-    #    strip off any parenthetical age
+    #    Strip off any parenthetical age.
     raw = raw.split('(')[0].strip()
     m = re.match(r'(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})', raw)
     if m:
@@ -86,6 +98,7 @@ def fetch_dob(name: str) -> tuple[str, str]:
         with redirect_stdout(buf), redirect_stderr(buf):
             page = wptools.page(name, silent=True).get_parse()
         infobox = page.data.get("infobox") or {}
+        # Prefer 'birth_date', then 'born', then the template variant.
         raw = (
             infobox.get("birth_date")
             or infobox.get("born")
@@ -99,6 +112,7 @@ def fetch_dob(name: str) -> tuple[str, str]:
 
 
 def main():
+    """Load names, fetch DOBs in parallel, and write the output CSV."""
     # 1) load names
     try:
         df = pd.read_csv(CSV_INPUT)
@@ -115,7 +129,7 @@ def main():
         print(f"❌ No names found in column '{NAME_COLUMN}'", file=sys.stderr)
         sys.exit(1)
 
-    # 2) parallel fetch (preserve original order)
+    # 2) Parallel fetch (preserve original order with index mapping).
     results = [None] * len(names)
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         future_to_idx = {
@@ -131,7 +145,7 @@ def main():
                 dob = f"❌ exception ({e})"
             results[idx] = (name, dob)
 
-    # 3) write to CSV
+    # 3) Write to CSV
     out_df = pd.DataFrame(results, columns=["name", "date_of_birth"])
     try:
         out_df.to_csv(OUTPUT_CSV, index=False)
