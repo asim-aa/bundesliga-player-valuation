@@ -85,7 +85,5 @@ Start date YYYY-MM-DD (leave blank for today):
 - Pinned dependencies in `requirements.txt`.
 - Preprocessing encapsulated in a single pipeline to prevent leakage.
 - Test-ready layout; add tests under `tests/` and run with `pytest -q`.
-- Train time-aware models for trajectories and uncertainty bands.
-- Package as a lightweight web app for non-technical stakeholders.
 
 
