@@ -1,9 +1,6 @@
 # Methods
 
 **Purpose:** Deep dive on data ingestion, exploratory data analysis (EDA), feature engineering, preprocessing, and modeling choices.
-
-**Why:** Readers interested in “how it works” can skip the rest.
-
 ---
 
 ## 1. Data Ingestion & Exploratory Analysis
@@ -156,4 +153,3 @@ Bundle preprocessing and prediction logic into one serializable object and expos
 
 ---
 
-*End of methods deep dive.*

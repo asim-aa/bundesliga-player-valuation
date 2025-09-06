@@ -5,7 +5,7 @@ Pitch: I built an end-to-end machine-learning pipeline that estimates and foreca
 > Performance (hold-out): Lasso RMSE €0.001 · R² 1.000 · n = 102
 > (Full evaluation and plots in docs/RESULTS.md.)
 
-## Why I Built This (concise)
+## Why I Built This 
 - Turn passion into proof: convert years of following European football into a working, testable product.
 - Math → market impact: connect statistical modeling to decisions clubs care about (contracts, scouting ROI, squad planning).
 - Learn by shipping: design clean data flows, automate feature creation, compare models fairly, and expose it via a usable interface.
@@ -73,7 +73,7 @@ Start date YYYY-MM-DD (leave blank for today):
 - Age feature write-up: `data/data.md`
 
 ### Data Sources & Licensing
-- Primary data: TODO — list your actual sources and terms.
+- Primary data: Dataset from Kaggle
 - Age feature: Programmatic birthdate parsing via Wikipedia to keep ages current.
 - Ethics & use: Educational and research purposes; not financial advice or transfer guidance.
 
@@ -88,5 +88,4 @@ Start date YYYY-MM-DD (leave blank for today):
 - Train time-aware models for trajectories and uncertainty bands.
 - Package as a lightweight web app for non-technical stakeholders.
 
-## Why This Matters
-This project isn’t just predictions — it’s a disciplined approach to turning noisy sports data into decisions a club (or any business) can act on. It shows how I think, how I build, and how I communicate results responsibly.
+

@@ -52,7 +52,6 @@ python src/model_pipeline.py \
   models/best_pipeline.pkl \
   --test-size 0.2
 ```
-
 This prints test RMSE/R² and writes the joblib artifact to `models/best_pipeline.pkl` (used by the CLI).
 
 ## Tune and Compare Models
@@ -70,11 +69,3 @@ Outputs:
 
 To capture the headline metric for the README:
 - Note the best model and its Test RMSE/R² from the console output.
-
-## Troubleshooting
-
-- If the CLI cannot find the model or data files, ensure the expected paths exist:
-  - `models/best_pipeline.pkl`
-  - `data/processed/players_features.csv`
-- If running headless (no display), consider adding a flag to save plots instead of showing; I can add `--save-path` on request.
-
