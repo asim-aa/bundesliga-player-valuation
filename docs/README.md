@@ -1,6 +1,6 @@
 # Bundesliga Player Valuation
 
-Pitch: I built an end-to-end machine-learning pipeline that estimates and forecasts Bundesliga players’ market value. It blends football knowledge with rigorous data science (cleaning → feature engineering → model selection → explainability) and ships with a simple CLI so anyone can price a player in seconds.
+I built an end-to-end machine-learning pipeline that estimates and forecasts Bundesliga players’ market value. It blends football knowledge with rigorous data science (cleaning → feature engineering → model selection → explainability) and ships with a simple CLI so anyone can price a player in seconds.
 
 > Performance (hold-out): Lasso RMSE €0.001 · R² 1.000 · n = 102
 > (Full evaluation and plots in docs/RESULTS.md.)
