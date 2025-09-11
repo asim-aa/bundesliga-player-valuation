@@ -55,6 +55,12 @@ Note: exact metrics depend on data preprocessing, splits, and library versions. 
 
 ## Plots
 
-The script displays two bar plots:
+The tuning script displays two bar plots:
 - Test RMSE by model
 - Test R² by model
+
+### Explainability
+- Global feature importance (bar chart) and optional SHAP summary can be generated with:
+  - `python src/explainability.py --save outputs/feature_importance.png`
+  - `python src/explainability.py --shap --save-shap outputs/shap_summary.png`
+  These plots describe the trained pipeline saved at `models/best_pipeline.pkl`.
