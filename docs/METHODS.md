@@ -13,14 +13,14 @@ Before modeling, we must load raw data, clean it, and explore its key patterns a
    - **File:** `src/load_data.py`  
    - Read raw CSV:  
      ```python
-     df = pd.read_csv("data/raw/bundesliga_players.csv")
+     df = pd.read_csv("data/raw/bundesliga_player.csv")
      ```  
    - Parse dates and normalize price strings (“€”, “M”, “K”) to floats.  
    - Impute missing categorical fields (e.g. agent, outfitter) with `"Unknown"`.  
    - Write cleaned output to `data/processed/players_clean.csv`.
 
 2. **EDA Notebooks**  
-   - **File:** `notebooks/eda.ipynb`  
+   - **File:** `notebooks/04_exploratory_analysis.ipynb`  
    - **Univariate analysis:** histograms of `age`, `market_value` distributions.  
    - **Bivariate analysis:**  
      - Boxplots of value by `position`.  
@@ -36,17 +36,14 @@ Transform raw columns into model-ready inputs: impute, scale, and encode. Augmen
 
 ### Implementation in This Project  
 1. **Pipeline Definition**  
-   - **File:** `src/pipeline.py`  
+   - **File:** `src/model_pipeline.py`  
    - Numeric pipeline: median imputation → standard scaling.  
    - Categorical pipeline: most-frequent imputation → one-hot encoding.  
-   - Assembled into a `ColumnTransformer`:  
+   - Final feature lists and `ColumnTransformer` inside a sklearn `Pipeline` named `preprocessor`:  
      ```python
-     numeric_feats = ["age", "days_remaining", "height", "past_price_mean"]
-     categorical_feats = ["position", "club", "foot"]
-     preprocessor = ColumnTransformer([
-       ("num", Pipeline([("imp", SimpleImputer("median")), ("sc", StandardScaler())]), numeric_feats),
-       ("cat", Pipeline([("imp", SimpleImputer("most_frequent")), ("ohe", OneHotEncoder(handle_unknown="ignore"))]), categorical_feats)
-     ])
+     NUMERIC_FEATURES = ['age', 'max_price_eur', 'price_to_max', 'tenure_years']
+     CATEGORICAL_FEATURES = ['position', 'club', 'nationality']
+     # numeric: median impute → scale; categorical: constant impute → one-hot
      ```
 
 2. **Domain-Driven Features**  
@@ -56,19 +53,9 @@ Transform raw columns into model-ready inputs: impute, scale, and encode. Augmen
      - Ages 26–32: linear decline to multiplier = 0.7  
      - >32: exponential decay: `mult *= exp(-(age-32)/5)`
 
-3. **Enriching Age Data Using Wikipedia API**  
-   - **File:** `src/fetch_player_ages.py`  
-   - To ensure accurate and consistent age values, we used the **Wikipedia API** to fetch each player's birthdate and calculate their current age:
-     - Queried Wikipedia for each player's full name using the `wikipedia` Python library or `requests` with `wikipediaapi`.
-     - Parsed the first sentence of the page summary to extract the date of birth using regular expressions.
-     - Computed age as the difference between today’s date and the extracted birthdate.
-     - Example:  
-       For `"Jamal Musiala"` → summary:  
-       _"Jamal Musiala (born 26 February 2003)..."_  
-       → extracted DOB: `2003-02-26`  
-       → calculated age: `22`
-     - The resulting age was added to the dataset for modeling.
-   - This process improved the quality of our age feature, which is a key variable in player valuation.
+3. **Enriching Age Data Using Wikipedia**  
+   - **Folder:** `fetch-scripts/`  
+   - Scripts like `fetch_birthdays_from_csv.py` can query Wikipedia to extract dates of birth and compute current ages. These utilities were used during data preparation as needed.
 
 ---
 
@@ -107,13 +94,13 @@ Use cross-validation to select hyperparameters that generalize best. Compare mod
    - Iterate over model definitions and parameter grids:  
      ```python
      for name, spec in model_defs.items():
-         gs = GridSearchCV(Pipeline([("pre", preprocessor), ("model", spec["estimator"])]),
+         gs = GridSearchCV(Pipeline([("preprocessor", preprocessor), ("model", spec["estimator"])]),
                            spec["params"], cv=5, scoring="neg_root_mean_squared_error")
          gs.fit(X_train, y_train)
          record_result(name, gs.best_params_, gs.best_score_, evaluate_on_test(gs.best_estimator_))
      ```
 2. **Persisting the Best Model**  
-   - Save winner with `joblib.dump(...)` to `models/best_model.pkl`.
+   - `src/model_pipeline.py` trains and saves an end‑to‑end artifact at `models/best_pipeline.pkl` used by the CLI.
 
 ---
 
@@ -125,7 +112,7 @@ Use cross-validation to select hyperparameters that generalize best. Compare mod
 
 ### Implementation in This Project  
 - Printed after each training run.  
-- Final comparison chart in `notebooks/final_report.ipynb`.
+- Comparison tables and plots in `docs/RESULTS.md`.
 
 ---
 
@@ -136,10 +123,10 @@ Bundle preprocessing and prediction logic into one serializable object and expos
 
 ### Implementation in This Project  
 1. **Prediction Script**  
-   - **File:** `src/predict_player_progression.py`  
-   - Loads `models/best_model.pkl` and `data/processed/players_clean.csv`.  
-   - Parses arguments via `argparse` (`--start-date`, `--periods`, `--freq`, `player_name`).  
-   - Outputs a table or plot of projected market values.
+   - **File:** `src/cli.py`  
+   - Loads `models/best_pipeline.pkl` and `data/processed/players_features.csv`.  
+   - Parses arguments via `argparse` (`--interactive`, `--years/--periods`, `--freq`, `--save`, `--no-show`).  
+   - Displays a plot and can save it for headless runs.
 
 ---
 
@@ -152,4 +139,3 @@ Bundle preprocessing and prediction logic into one serializable object and expos
 - **Next steps:** incorporate in-game performance metrics (e.g. xG, defensive actions) to refine value estimates.
 
 ---
-

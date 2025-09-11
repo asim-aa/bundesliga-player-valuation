@@ -25,7 +25,7 @@ High-level view of the data flow and main components.
 
 - `src/model_pipeline.py`:
   - Defines final feature lists and preprocessing.
-  - Trains RandomForest inside a `Pipeline` and saves the artifact.
+  - Trains the selected estimator (currently Lasso with alpha=0.001) inside a `Pipeline` and saves the artifact.
 
 - `src/model_tuning_and_comparison.py`:
   - Infers numeric/categorical columns from train split; builds `ColumnTransformer`.
@@ -46,4 +46,3 @@ High-level view of the data flow and main components.
 - Processed dataset includes required features referenced by the pipeline.
 - The trained pipeline is saved at `models/best_pipeline.pkl`.
 - The `name` column in the dataset matches the player names used at inference.
-

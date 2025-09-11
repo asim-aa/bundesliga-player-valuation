@@ -18,6 +18,8 @@ At the end, a sorted comparison table is printed and two bar plots (RMSE, R²) a
 
 ## Headline Metrics (latest run)
 
+Note: exact metrics depend on data preprocessing, splits, and library versions. The CLI uses `models/best_pipeline.pkl` (an end‑to‑end pipeline artifact); to align it with these results, retrain via `src/model_pipeline.py` after choosing the best model.
+
 - Best model: Lasso
 - Test RMSE: 0.000960
 - Test R²:   1.000000
@@ -56,5 +58,3 @@ At the end, a sorted comparison table is printed and two bar plots (RMSE, R²) a
 The script displays two bar plots:
 - Test RMSE by model
 - Test R² by model
-
-

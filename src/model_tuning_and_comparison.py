@@ -90,7 +90,7 @@ def main():
     for name, md in model_defs.items():
         print(f"\n→ Tuning {name}…")
         pipe = Pipeline([
-            ("preproc", preprocessor),
+            ("preprocessor", preprocessor),
             ("model",   md["estimator"])
         ])
         gs = GridSearchCV(pipe,

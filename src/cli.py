@@ -7,6 +7,7 @@
 #   python src/cli.py "Jamal Musiala" --years 5 --freq Y
 #   python src/cli.py "Jamal Musiala" --start-date 2025-01-01 --periods 60 --freq M
 import argparse
+import sys
 from pathlib import Path
 from datetime import date
 import matplotlib.pyplot as plt
@@ -57,6 +58,16 @@ def parse_args():
         type=int,
         default=None,
         help="Project over N years (overrides --periods; M/ME -> 12 per year, Y/A -> 1 per year)."
+    )
+    parser.add_argument(
+        "--save",
+        default=None,
+        help="Optional path to save the plot (e.g. 'outputs/musiala_projection.png')."
+    )
+    parser.add_argument(
+        "--no-show",
+        action="store_true",
+        help="Do not open a window; useful for headless environments."
     )
     return parser.parse_args()
 
@@ -133,14 +144,18 @@ def main():
     df    = load_data(str(DATA_PATH))
 
     # Generate projection
-    dates, values = predict_value_progression(
-        model,
-        df,
-        player_name=player_name,
-        start_date=start,
-        periods=periods,
-        freq=freq
-    )
+    try:
+        dates, values = predict_value_progression(
+            model,
+            df,
+            player_name=player_name,
+            start_date=start,
+            periods=periods,
+            freq=freq
+        )
+    except Exception as e:
+        print(f"error: {e}")
+        sys.exit(1)
 
     # Plot results
     plt.figure(figsize=(8, 4))
@@ -150,7 +165,17 @@ def main():
     plt.ylabel("Market Value (€)")
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.show()
+
+    # Save if requested
+    if args.save:
+        out_path = Path(args.save)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(out_path, dpi=300)
+        print(f"✔ Saved plot to {out_path}")
+
+    # Show unless suppressed (useful for headless CI/demos)
+    if not args.no_show:
+        plt.show()
 
 
 if __name__ == '__main__':

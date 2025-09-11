@@ -26,7 +26,7 @@ def main():
 
     # 3. Pipeline
     pipeline = Pipeline([
-        ("preproc", preprocessor),
+        ("preprocessor", preprocessor),
         ("model", RandomForestRegressor(n_estimators=100, random_state=42))
     ])
 

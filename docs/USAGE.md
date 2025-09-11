@@ -26,8 +26,11 @@ This opens a matplotlib plot of predicted value over time.
 ### Non-Interactive Mode
 - Directly specify inputs as flags.
 ```
-python src/cli.py "Jamal Musiala" --years 5 --freq Y
+python src/cli.py "Jamal Musiala" --years 5 --freq YE
 python src/cli.py "Jamal Musiala" --start-date 2025-09-01 --periods 60 --freq M
+
+# Headless example: save plot only
+python src/cli.py "Marco Reus" --years 3 --freq YE --save outputs/reus_projection.png --no-show
 ```
 
 Flags:
@@ -35,8 +38,10 @@ Flags:
 - `-i, --interactive`: prompt for inputs.
 - `--start-date`: ISO date `YYYY-MM-DD`; defaults to today if omitted.
 - `--periods`: number of future periods to project (used when `--years` is not set). Default: 12.
-- `--years`: convenience for yearly horizons; translates to periods based on `--freq` (M/ME → 12 per year; Y/A → 1 per year).
-- `--freq`: frequency string for `pandas.date_range`; common values: `ME` (month end, default), `M`, `Y`.
+- `--years`: convenience for yearly horizons; translates to periods based on `--freq` (M/ME → 12 per year; YE/A → 1 per year).
+- `--freq`: frequency string for `pandas.date_range`; common values: `ME` (month end, default), `M`, `YE`. Note: `Y` is deprecated in recent pandas; use `YE` instead.
+- `--save`: optional path to write the plot image (PNG, SVG, etc.).
+- `--no-show`: suppress opening a window (useful for CI/servers).
 
 Paths used by the CLI:
 - Model: `models/best_pipeline.pkl`

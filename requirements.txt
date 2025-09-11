@@ -1,11 +1,12 @@
-numPy
-pandas
-matplotlib
-numpy
-scikit-learn
-joblib
+numpy==1.26.4
+pandas==2.2.2
+matplotlib==3.8.4
+scikit-learn==1.3.2
+joblib==1.3.2
+
 # Optional but used in tuning
-xgboost
-# Optional for fetch scripts
-wptools
-seaborn
+xgboost==1.7.6
+
+# Optional for fetch scripts and plots
+wptools==0.4.17
+seaborn==0.13.2

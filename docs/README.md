@@ -2,8 +2,7 @@
 
 I built an end-to-end machine-learning pipeline that estimates and forecasts Bundesliga players’ market value. It blends football knowledge with rigorous data science (cleaning → feature engineering → model selection → explainability) and ships with a simple CLI so anyone can price a player in seconds.
 
-> Performance (hold-out): Lasso RMSE €0.001 · R² 1.000 · n = 102
-> (Full evaluation and plots in docs/RESULTS.md.)
+> Performance: see docs/RESULTS.md for the latest metrics and comparison plots.
 
 ## Why I Built This 
 - Turn passion into proof: convert years of following European football into a working, testable product.
@@ -54,9 +53,7 @@ Start date YYYY-MM-DD (leave blank for today):
 
 ## Results (headline)
 - Reproduce by running: `python src/model_tuning_and_comparison.py`
-- Record the best model and metrics from the printed table, for example:
-  - Best model: RandomForestRegressor — Test RMSE: <your_value>, R²: <your_value>
-- Full details, including the comparison table and plots, live in `docs/RESULTS.md`.
+- Full details, including comparison tables and plots, live in `docs/RESULTS.md`.
 
 ## Technical Choices (brief)
 - Stack: Python, pandas, numpy, scikit-learn, XGBoost, matplotlib.
@@ -86,4 +83,5 @@ Start date YYYY-MM-DD (leave blank for today):
 - Preprocessing encapsulated in a single pipeline to prevent leakage.
 - Test-ready layout; add tests under `tests/` and run with `pytest -q`.
 
-
+### Headless/Non-interactive usage
+- Save without opening a window: `python src/cli.py "Jamal Musiala" --years 5 --freq Y --save outputs/musiala.png --no-show`

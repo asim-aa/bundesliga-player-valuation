@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import difflib
+import unicodedata as _ud
 
 def predict_value_progression(model, df, player_name, start_date, periods, freq):
     """
@@ -10,18 +11,47 @@ def predict_value_progression(model, df, player_name, start_date, periods, freq)
     declines, then drops more sharply after 32.
     """
 
-    # — look up the player name (case-insensitive) —
-    mask = df["name"].str.lower() == player_name.lower()
+    # — look up the player name (case/diacritics-insensitive) —
+    def _normalize(s: str) -> str:
+        if s is None:
+            return ""
+        s = _ud.normalize('NFKD', str(s)).encode('ascii', 'ignore').decode('ascii')
+        s = s.strip().lower()
+        s = " ".join(s.split())
+        return s
+
+    names = df["name"].astype(str)
+    # 1) exact case-insensitive
+    mask = names.str.lower() == (player_name or "").lower()
     player_rows = df[mask]
+    # 2) diacritics-insensitive exact match
     if player_rows.empty:
-        suggestions = difflib.get_close_matches(player_name, df["name"], n=5, cutoff=0.6)
+        norm_names = names.apply(_normalize)
+        norm_query = _normalize(player_name)
+        mask2 = norm_names == norm_query
+        player_rows = df[mask2]
+    # 3) substring match if still empty
+    if player_rows.empty and player_name:
+        contains = names.str.contains(player_name, case=False, regex=False, na=False)
+        if contains.sum() == 1:
+            player_rows = df[contains]
+    # 4) not found → suggestions
+    if player_rows.empty:
+        candidates = names.unique().tolist()
+        suggestions = difflib.get_close_matches(player_name or "", candidates, n=5, cutoff=0.6)
         raise ValueError(
             f"Player '{player_name}' not found. "
             + (f"Did you mean: {suggestions}" if suggestions else "")
         )
 
     # — grab the pipeline’s feature list —
-    preproc = model.named_steps['preproc']
+    # Support either step name depending on which trainer saved the model
+    if 'preproc' in model.named_steps:
+        preproc = model.named_steps['preproc']
+    elif 'preprocessor' in model.named_steps:
+        preproc = model.named_steps['preprocessor']
+    else:
+        raise KeyError("Expected a preprocessing step named 'preproc' or 'preprocessor' in the pipeline.")
     num_cols = cat_cols = []
     for nm, _, cols in preproc.transformers_:
         if nm == 'num':

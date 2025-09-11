@@ -13,6 +13,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import Lasso
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 
@@ -72,13 +73,10 @@ def build_model_pipeline() -> Pipeline:
     Assemble preprocessing + RandomForest regressor.
     """
     preprocessor = build_preprocessor()
+    # Best from recent tuning: Lasso with alpha=0.001
     pipeline = Pipeline([
         ('preprocessor', preprocessor),
-        ('regressor', RandomForestRegressor(
-            n_estimators=100,
-            random_state=42,
-            n_jobs=-1
-        ))
+        ('regressor', Lasso(alpha=0.001, max_iter=5000, random_state=42))
     ])
     return pipeline
 
