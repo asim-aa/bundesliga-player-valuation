@@ -1,5 +1,7 @@
 # Bundesliga Player Valuation
 
+> Start Here: See the step-by-step demo with commands and images in [DEMO.md](DEMO.md).
+
 I built an end-to-end machine-learning pipeline that estimates and forecasts Bundesliga players’ market value. It blends football knowledge with rigorous data science (cleaning → feature engineering → model selection → explainability) and ships with a simple CLI so anyone can price a player in seconds.
 
 > Performance: see docs/RESULTS.md for the latest metrics and comparison plots.
